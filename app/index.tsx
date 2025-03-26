@@ -1,20 +1,41 @@
-import { router } from "expo-router";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Movie } from "../types/movies";
+import { getMovieList } from "../services/movies";
+import { MovieItem, MovieItemSkeleton } from "../components/movie-item";
 
 export default function Screen() {
-  const getProducts = async () => {
-    const response = await fetch("https://fakestoreapi.com/products");
-    const json = await response.json();
+  const [loading, setLoading] = useState(false);
+  const [movies, setMovies] = useState<Movie[]>([]);
+
+  const getMovies = async () => {
+    setLoading(true);
+    const moviesList = await getMovieList();
+    setMovies(moviesList);
+    setLoading(false);
   };
 
   useEffect(() => {
-    getProducts();
+    getMovies();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Hello world</Text>
+      <Text style={styles.h1}>Movies</Text>
+
+      {loading && (
+        <>
+          <MovieItemSkeleton />
+          <MovieItemSkeleton />
+          <MovieItemSkeleton />
+        </>
+      )}
+
+      {!loading && movies.length === 0 && <Text>No movies available</Text>}
+
+      {!loading &&
+        movies.length > 0 &&
+        movies.map((movie) => <MovieItem key={movie.id} movie={movie} />)}
     </View>
   );
 }
@@ -22,8 +43,10 @@ export default function Screen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+  },
+  h1: {
+    fontSize: 30,
+    margin: 20,
+    textAlign: "center",
   },
 });
